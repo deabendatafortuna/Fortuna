@@ -5,8 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.navigation.fragment.findNavController
 import com.example.fortuna.databinding.FragmentFirstBinding
+import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -25,12 +30,28 @@ class FirstFragment : Fragment() {
     ): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+
         return binding.root
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val apiKey = "YOUR_API_KEY"
+
+        val generativeModel = GenerativeModel(
+            modelName = "gemini-pro",
+            apiKey = apiKey
+        )
+
+        MainScope().launch {
+            val generatedText = generativeModel.generateContent(prompt.value).text
+            response.value = generatedText
+        }
+
+        val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
+        textViewFirst.text = "test"
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
