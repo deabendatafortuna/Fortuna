@@ -1,6 +1,7 @@
 package com.example.fortuna
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,8 @@ import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.navigation.fragment.findNavController
 import com.example.fortuna.databinding.FragmentFirstBinding
 import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -35,26 +38,47 @@ class FirstFragment : Fragment() {
 
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?)
+    {
         super.onViewCreated(view, savedInstanceState)
 
-        val apiKey = "YOUR_API_KEY"
-
-        val generativeModel = GenerativeModel(
-            modelName = "gemini-pro",
-            apiKey = apiKey
-        )
-
-        MainScope().launch {
-            val generatedText = generativeModel.generateContent(prompt.value).text
-            response.value = generatedText
-        }
-
-        val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
-        textViewFirst.text = "test"
+        CallGemini()
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+        }
+    }
+
+    private fun CallGemini() {
+        Log.d("FirstFragment", "CallGemini called")
+        val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
+        val apiKey = "AIzaSyCIxv77lw4c3rMGpqdMXzAvoTTbIxG2AQo"
+
+        try
+        {
+            val generativeModel = GenerativeModel(
+                modelName = "gemini-pro",
+                apiKey = apiKey
+            )
+            textViewFirst.text = "2"
+            val chat = generativeModel.startChat()
+            val prompt = "Che cosa è la retinite pigmentosa?"
+
+            MainScope().launch {
+                try {
+                    Log.d("FirstFragment", "Coroutine started")
+                    val response = chat.sendMessage(prompt)
+                    Log.d("FirstFragment", "Response received: ${response.text}")
+
+                    //val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
+                    textViewFirst.text = response.text
+                } catch (e: Exception) {
+                    textViewFirst.text = "Invalid API Key"
+                    Log.e("FirstFragment", "Error during API call", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FirstFragment", "Error during Generative Model creation", e)
         }
     }
 
