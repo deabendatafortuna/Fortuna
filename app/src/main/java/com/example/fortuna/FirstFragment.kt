@@ -1,5 +1,6 @@
 package com.example.fortuna
 
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,8 +12,6 @@ import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.navigation.fragment.findNavController
 import com.example.fortuna.databinding.FragmentFirstBinding
 import com.google.ai.client.generativeai.GenerativeModel
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -26,6 +25,7 @@ class FirstFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,29 +33,33 @@ class FirstFragment : Fragment() {
     ): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
-
         return binding.root
 
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?)
-    {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         CallGemini()
+        playMp3()
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
     }
 
+    private fun
+            playMp3() {
+        mediaPlayer = MediaPlayer.create(this.context, R.raw.over_the_horizon)
+        mediaPlayer?.start()
+    }
+
     private fun CallGemini() {
         Log.d("FirstFragment", "CallGemini called")
         val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
-        val apiKey = "AIzaSyCIxv77lw4c3rMGpqdMXzAvoTTbIxG2AQo"
+        val apiKey = "YOUR_API_KEY"
 
-        try
-        {
+        try {
             val generativeModel = GenerativeModel(
                 modelName = "gemini-pro",
                 apiKey = apiKey
@@ -70,7 +74,6 @@ class FirstFragment : Fragment() {
                     val response = chat.sendMessage(prompt)
                     Log.d("FirstFragment", "Response received: ${response.text}")
 
-                    //val textViewFirst = binding.root.findViewById<TextView>(R.id.textview_first)
                     textViewFirst.text = response.text
                 } catch (e: Exception) {
                     textViewFirst.text = "Invalid API Key"
@@ -85,5 +88,7 @@ class FirstFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }
