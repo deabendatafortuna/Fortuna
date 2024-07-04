@@ -1,10 +1,11 @@
 package com.example.fortuna
 
+import android.net.InetAddresses
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 
-class UDPListener(private val port: Int, private val onPacketReceived: (String) -> Unit)
+class UDPListener(private val port: Int, private val onPacketReceived: (String, String) -> Unit)
 {
     private var listening: Boolean = true
 
@@ -18,7 +19,8 @@ class UDPListener(private val port: Int, private val onPacketReceived: (String) 
                 while (listening) {
                     socket.receive(packet)
                     val message = String(packet.data, 0, packet.length)
-                    onPacketReceived(message)
+                    packet.address
+                    onPacketReceived(message, packet.address.toString())
                 }
                 socket.close()
             } catch (e: Exception) {

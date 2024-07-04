@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private lateinit var binding: ActivityMainBinding
     private lateinit var previewView: PreviewView
     private lateinit var cameraManager: CameraManager
+    private lateinit var udpConnector:UDPConnector
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var udpReceiver: UDPListener
     private lateinit var udpSender: UDPSender
@@ -26,7 +27,10 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         cameraManager = CameraManager(this, previewView.surfaceProvider)
         cameraManager.startCameraOrAskPermissions()
 
-        udpSender = UDPSender("192.168.1.20", 8001)
+        udpConnector = UDPConnector { playMp3() }
+        udpConnector.startTryConnect()
+
+        /*udpSender = UDPSender("192.168.1.20", 8001)
         udpReceiver = UDPListener(8000) { message ->
             runOnUiThread {
                 if (message == "playMp3")
@@ -38,7 +42,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             }
         }
 
-        udpReceiver.startListening()
+        udpReceiver.startListening()*/
     }
 
     override fun onRequestPermissionsResult(
