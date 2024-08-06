@@ -5,7 +5,7 @@ import java.net.InetAddress
 import java.net.SocketException
 import java.util.regex.MatchResult
 
-class UDPConnector(private val onConnectionEstablished: () -> Unit)
+class UDPConnector(private val onConnectionEstablished: () -> Unit, private val onValueReceived: (value: String) -> Unit)
 {
     private val BROADCAST_PORT = 8888
     private val BROADCAST_HOST_MESSAGE = "FORTUNA_DISCOVERY_MESSAGE_HOST_PORT_"
@@ -62,7 +62,7 @@ class UDPConnector(private val onConnectionEstablished: () -> Unit)
 
     private fun onReceivedMessage(message:String, address:String)
     {
-        if(isConnectionRequestMessage(message) != null) {
+        if(!connected && isConnectionRequestMessage(message) != null) {
             val port = extractPortNumber(message)
             if (port != null) {
                 deviceAddress = address.replace("/", "")
@@ -77,10 +77,16 @@ class UDPConnector(private val onConnectionEstablished: () -> Unit)
                 sendHostMessage()
             }
         }
-        else if (message == "Connected")
+        else if (!connected && message == "Connected")
         {
             connected = true
+            udpSender = UDPSender(deviceAddress, devicePort.toInt())
+            udpSender.startSendUdpCyclicPacket(BROADCAST_HOST_MESSAGE + "Connected", 5000)
             onConnectionEstablished()
+        }
+        else if (connected)
+        {
+            onValueReceived(message)
         }
     }
 

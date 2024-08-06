@@ -2,6 +2,7 @@ package com.example.fortuna
 
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
@@ -27,7 +28,18 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         cameraManager = CameraManager(this, previewView.surfaceProvider)
         cameraManager.startCameraOrAskPermissions()
 
-        udpConnector = UDPConnector { playMp3() }
+        val onConnectionEstablished = {
+            runOnUiThread {
+                binding.overlayTextView.setText("Connected")
+            }
+        }
+        val onValueReceived: (value: String) -> Unit = { value ->
+            runOnUiThread {
+                binding.overlayTextView.setText(value)
+            }
+        }
+
+        udpConnector = UDPConnector(onConnectionEstablished, onValueReceived)
         udpConnector.startTryConnect()
 
         /*udpSender = UDPSender("192.168.1.20", 8001)
