@@ -36,7 +36,7 @@ class UDPSender(private val address: String, private val port: Int)
                 sending = true
                 while(sending) {
                     socket.send(packet)
-                    Thread.sleep(cycleTimeMs)
+                    Thread.sleep(cycleTimeMs +0L)
                 }
                 socket.close()
             } catch (e: Exception) {
