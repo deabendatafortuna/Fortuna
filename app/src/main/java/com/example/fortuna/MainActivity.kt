@@ -1,13 +1,14 @@
 package com.example.fortuna
 
-import android.media.MediaPlayer
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import android.media.MediaPlayer
+
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import com.example.fortuna.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsResultCallback {
+class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var previewView: PreviewView
@@ -17,32 +18,42 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private lateinit var udpReceiver: UDPListener
     private lateinit var udpSender: UDPSender
 
+    private var graphicLibraryFlag: Boolean = true
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         previewView = binding.root.findViewById(R.id.previewView)
-        cameraManager = CameraManager(this, previewView.surfaceProvider)
-        cameraManager.startCameraOrAskPermissions()
 
-        udpConnector = UDPConnector { playMp3() }
-        udpConnector.startTryConnect()
-
-        /*udpSender = UDPSender("192.168.1.20", 8001)
-        udpReceiver = UDPListener(8000) { message ->
-            runOnUiThread {
-                if (message == "playMp3")
-                    playMp3()
-                if (message == "stopMp3")
-                    mediaPlayer?.stop()
-
-                udpSender?.sendUdpPacket("Received message: $message")
-            }
+        if(graphicLibraryFlag)
+        {
+            val graphicLibrary: GraphicLibrary = GraphicLibrary()
+            graphicLibrary.start(this)
         }
+        else
+        {
 
-        udpReceiver.startListening()*/
+            cameraManager = CameraManager(this, previewView.surfaceProvider)
+            cameraManager.startCameraOrAskPermissions()
+
+            udpConnector = UDPConnector { playMp3() }
+            udpConnector.startTryConnect()
+
+            /*udpSender = UDPSender("192.168.1.20", 8001)
+            udpReceiver = UDPListener(8000) { message ->
+                runOnUiThread {
+                    if (message == "playMp3")
+                        playMp3()
+                    if (message == "stopMp3")
+                        mediaPlayer?.stop()
+
+                    udpSender?.sendUdpPacket("Received message: $message")
+                }
+            }
+
+            udpReceiver.startListening()*/
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -75,3 +86,6 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         mediaPlayer?.pause()
     }
 }
+
+
+
