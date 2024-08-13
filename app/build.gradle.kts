@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.uitooling.preview)
     implementation(libs.androidx.material)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

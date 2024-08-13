@@ -17,6 +17,7 @@ mpandroidchart = "3.1.0"
 lifecycleRuntimeKtx = "2.3.1"
 activityCompose = "1.3.1"
 composeUiVersion = "1.2.0"
+kotlinxSerializationJson = "1.3.0"
 
 [libraries]
 mpandroidchart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpandroidchart"}
@@ -41,6 +42,7 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "composeUiVersion" }
 androidx-uitooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "composeUiVersion" }
 androidx-material = { group = "androidx.compose.material", name = "material", version.ref = "composeUiVersion" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 
 [plugins]
