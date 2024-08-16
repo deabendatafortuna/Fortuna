@@ -23,34 +23,36 @@ class JsonFakeData(context : Context) : FakeData()
         g3ArrayListEntry.clear()
     }
 
-    private fun fillFromJson()
-    {
+    private fun fillFromJson() {
         val dataEx = DataExchanger(_context)
         val data = dataEx.leggiDaJson(R.raw.json_test)
 
-        a1ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.acc0.toFloat())
-        } as ArrayList<Entry>
+        if (data != null) {
+            a1ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.acc0.toFloat())
+            } as ArrayList<Entry>
 
-        a2ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.acc1.toFloat())
-        } as ArrayList<Entry>
 
-        a3ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.acc2.toFloat())
-        } as ArrayList<Entry>
+            a2ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.acc1.toFloat())
+            } as ArrayList<Entry>
 
-        g1ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.gyro0.toFloat())
-        } as ArrayList<Entry>
+            a3ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.acc2.toFloat())
+            } as ArrayList<Entry>
 
-        g2ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.gyro1.toFloat())
-        } as ArrayList<Entry>
+            g1ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.gyro0.toFloat())
+            } as ArrayList<Entry>
 
-        g3ArrayListEntry = data?.map {
-            Entry(it.timestamp.toFloat(), it.gyro2.toFloat())
-        } as ArrayList<Entry>
+            g2ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.gyro1.toFloat())
+            } as ArrayList<Entry>
+
+            g3ArrayListEntry = data.map {
+                Entry(it.timestamp.toFloat(), it.gyro2.toFloat())
+            } as ArrayList<Entry>
+        }
     }
 }
 
