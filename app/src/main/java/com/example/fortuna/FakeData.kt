@@ -1,8 +1,60 @@
 package com.example.fortuna
 
+import android.content.Context
+import com.example.myfirstapp.DataExchanger
 import com.github.mikephil.charting.data.Entry
 
-class FakeData {
+class JsonFakeData(context : Context) : FakeData()
+{
+    private val _context = context
+    override fun start()
+    {
+        clearAll()
+        fillFromJson()
+    }
+
+    private fun clearAll()
+    {
+        a1ArrayListEntry.clear()
+        a2ArrayListEntry.clear()
+        a3ArrayListEntry.clear()
+        g1ArrayListEntry.clear()
+        g2ArrayListEntry.clear()
+        g3ArrayListEntry.clear()
+    }
+
+    private fun fillFromJson()
+    {
+        val dataEx = DataExchanger(_context)
+        val data = dataEx.leggiDaJson(R.raw.json_test)
+
+        a1ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.acc0.toFloat())
+        } as ArrayList<Entry>
+
+        a2ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.acc1.toFloat())
+        } as ArrayList<Entry>
+
+        a3ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.acc2.toFloat())
+        } as ArrayList<Entry>
+
+        g1ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.gyro0.toFloat())
+        } as ArrayList<Entry>
+
+        g2ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.gyro1.toFloat())
+        } as ArrayList<Entry>
+
+        g3ArrayListEntry = data?.map {
+            Entry(it.timestamp.toFloat(), it.gyro2.toFloat())
+        } as ArrayList<Entry>
+    }
+}
+
+open class FakeData {
 
     val timestamp = mutableListOf<Int>()
     val a1 = mutableListOf<Int>()
@@ -12,14 +64,14 @@ class FakeData {
     val g2 = mutableListOf<Int>()
     val g3 = mutableListOf<Int>()
 
-    val a1ArrayListEntry = ArrayList<Entry>()
-    val a2ArrayListEntry = ArrayList<Entry>()
-    val a3ArrayListEntry = ArrayList<Entry>()
-    val g1ArrayListEntry = ArrayList<Entry>()
-    val g2ArrayListEntry = ArrayList<Entry>()
-    val g3ArrayListEntry = ArrayList<Entry>()
+    var a1ArrayListEntry = ArrayList<Entry>()
+    var a2ArrayListEntry = ArrayList<Entry>()
+    var a3ArrayListEntry = ArrayList<Entry>()
+    var g1ArrayListEntry = ArrayList<Entry>()
+    var g2ArrayListEntry = ArrayList<Entry>()
+    var g3ArrayListEntry = ArrayList<Entry>()
 
-    fun start() {
+    open fun start() {
         val data = arrayOf(80569,16469,3649,-189,-12,969,-1032,
         80640,15861,857,-2457,-6840,4177,-494,
         80704,15869,1637,-661,299,-759,-875,

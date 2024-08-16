@@ -1,6 +1,7 @@
 package com.example.fortuna
 
 import android.graphics.Color
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -11,7 +12,8 @@ class GraphicLibrary {
     fun start(mainActivity: MainActivity) {
 
         mainActivity.setContentView(R.layout.activity_graphic_library)
-        val fakeData: FakeData = FakeData()
+        //val fakeData: FakeData = FakeData()
+        val fakeData = JsonFakeData(mainActivity)
         fakeData.start()
 
         val lineAccChart = mainActivity.findViewById<LineChart>(R.id.lineAccChart)

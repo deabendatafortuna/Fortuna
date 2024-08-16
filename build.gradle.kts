@@ -2,5 +2,6 @@
 plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.jetbrainsKotlinAndroid) apply false
+    kotlin("plugin.serialization") version "1.6.21"
 }
 
