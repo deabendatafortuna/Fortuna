@@ -23,23 +23,18 @@ class SensHandler(context: Context) : SensorEventListener {
     public val entriesY = mutableListOf<Entry>()
     public val entriesZ = mutableListOf<Entry>()
     private var timestamp = 0f
-    var XAccArrayListEntry = ArrayList<Entry>()
-    var YAccArrayListEntry = ArrayList<Entry>()
-    var ZAccArrayListEntry = ArrayList<Entry>()
-    public lateinit var chartX: LineChart
-    public lateinit var chartY: LineChart
-    public lateinit var chartZ: LineChart
+    public var XAccArrayListEntry = ArrayList<Entry>()
+    public var YAccArrayListEntry = ArrayList<Entry>()
+    public var ZAccArrayListEntry = ArrayList<Entry>()
 
     private val accelerometerData = mutableListOf<FloatArray>() /* float array related to logic evaluation */
 
 
 
     init {
-        /*
-        entriesX.add(Entry(timestamp, 0f))
-        entriesY.add(Entry(timestamp, 0f))
-        entriesZ.add(Entry(timestamp, 0f))*/
-
+        XAccArrayListEntry.add(Entry(timestamp,0.0f))
+        YAccArrayListEntry.add(Entry(timestamp,0.0f))
+        ZAccArrayListEntry.add(Entry(timestamp,0.0f))
         accelerometer?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
@@ -66,21 +61,6 @@ class SensHandler(context: Context) : SensorEventListener {
                     XAccArrayListEntry.add(Entry(timestamp,x))
                     YAccArrayListEntry.add(Entry(timestamp, y))
                     ZAccArrayListEntry.add(Entry(timestamp, z))
-
-                    //val graphicLibrary: GraphicLibrary = GraphicLibrary()
-                    //graphicLibrary.startPlotRealSensor(mainActivity)
-
-                    /*
-                    updateArray(chartX, entriesX, "Acc X")
-                    updateArray(chartY, entriesY, "Acc Y")
-                    updateArray(chartZ, entriesZ, "Acc Z")
-                    */
-                    /*
-                    val lineDataSet = LineDataSet(entriesX, "Accelerometer Data X")
-                    val lineData = LineData(lineDataSet)
-                    lineChart.data = lineData
-                    lineChart.invalidate()
-                    */
 
                     /* save data acc */
                     accelerometerData.add(it.values.clone())

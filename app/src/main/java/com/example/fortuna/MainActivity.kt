@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
             val graphicLibrary: GraphicLibrary = GraphicLibrary()
             graphicLibrary.start(this)*/
 
-            val graphicLibrary: GraphicLibrary = GraphicLibrary()
+            val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
             graphicLibrary.startSensorUpdates(this)
 
 
