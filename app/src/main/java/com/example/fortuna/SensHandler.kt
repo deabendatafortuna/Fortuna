@@ -5,33 +5,31 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import android.graphics.Color
-
-
 
 /* sens class implementation */
 
 class SensHandler(context: Context) : SensorEventListener {
-    private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private val gyroscope: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-    public val entriesX = mutableListOf<Entry>()
-    public val entriesY = mutableListOf<Entry>()
-    public val entriesZ = mutableListOf<Entry>()
-    private var timestamp = 0f
+    public var timestamp = 0f
+    private var bufferCount = 0
     public var XAccArrayListEntry = ArrayList<Entry>()
     public var YAccArrayListEntry = ArrayList<Entry>()
     public var ZAccArrayListEntry = ArrayList<Entry>()
-
+    private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private val gyroscope: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val accelerometerData = mutableListOf<FloatArray>() /* float array related to logic evaluation */
-
+    private var _mainActivity: MainActivity? = null
+    private lateinit var _graphicLibrary: GraphicLibrary
 
 
     init {
+
+    }
+
+    fun initSensHandler(mainActivity: MainActivity, graphicLibrary: GraphicLibrary) {
+        _mainActivity = mainActivity
+        _graphicLibrary = graphicLibrary
         XAccArrayListEntry.add(Entry(timestamp,0.0f))
         YAccArrayListEntry.add(Entry(timestamp,0.0f))
         ZAccArrayListEntry.add(Entry(timestamp,0.0f))
@@ -51,21 +49,18 @@ class SensHandler(context: Context) : SensorEventListener {
                     val y = it.values[1]
                     val z = it.values[2]
 
-                    /* real time */
-                    /* entriesX.add(Entry(timestamp,x))
-                    entriesY.add(Entry(timestamp,y))
-                    entriesZ.add(Entry(timestamp,z)) */
-
                     timestamp += 0.1f
 
                     XAccArrayListEntry.add(Entry(timestamp,x))
                     YAccArrayListEntry.add(Entry(timestamp, y))
                     ZAccArrayListEntry.add(Entry(timestamp, z))
 
-                    /* save data acc */
+                    if(bufferCount%500==0) {
+                        _graphicLibrary.startPlotRealSensor(_mainActivity)
+                    }
+                    bufferCount += 1
                     accelerometerData.add(it.values.clone())
 
-                    /* crash detection */
                     if (x > 15 || y > 15 || z > 15) {
                         println("Crash Detected!")
                     }
@@ -85,11 +80,8 @@ class SensHandler(context: Context) : SensorEventListener {
         // accuracy change management
     }
 
-
-
     fun unregister() {
         sensorManager.unregisterListener(this)
     }
-
 
 }

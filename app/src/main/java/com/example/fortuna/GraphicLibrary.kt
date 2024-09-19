@@ -1,21 +1,18 @@
 package com.example.fortuna
 
 import android.graphics.Color
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import android.hardware.Sensor
-import android.hardware.SensorManager
-import android.widget.TextView
-import androidx.core.content.ContextCompat.getSystemService
-import kotlinx.coroutines.*
+
+/*import kotlinx.coroutines. */
 
 
 
 class GraphicLibrary {
-    private var mainActivity: MainActivity? = null
-    private var job: Job? = null
+    //private var mainActivity: MainActivity? = null
+    /*private var job: Job? = null */
     private lateinit var mySensHandler: SensHandler
     var lineDataSetAcc1: LineDataSet? = null
     var lineDataSetAcc2: LineDataSet? = null
@@ -24,19 +21,19 @@ class GraphicLibrary {
     constructor (mainActivity: MainActivity){
         initializeSensClass(mainActivity)
     }
-
+/*
     public fun startSensorUpdates(mainActivity: MainActivity) {
         job = CoroutineScope(Dispatchers.Main).launch {
             while (isActive) {
                 /* Interrogo ogni mezzo secondo per avere i valori dell'accelerometro */
-                delay(2000)
+                delay(1)
                 /* Da aggiungere qui il codice per aggiornare l'interfaccia utente */
                 startPlotRealSensor(mainActivity)
 
             }
         }
     }
-
+*/
     private fun initializeSensClass(mainActivity: MainActivity) {
         mainActivity.setContentView(R.layout.activity_graphic_library)
 
@@ -48,6 +45,7 @@ class GraphicLibrary {
         lineAccChart.setBackgroundColor(Color.BLACK)
 
         mySensHandler = SensHandler(mainActivity)
+        mySensHandler.initSensHandler(mainActivity,this)
 
         lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
         lineDataSetAcc1?.color = Color.RED
@@ -128,9 +126,7 @@ class GraphicLibrary {
         lineGyroChart.description.textColor = Color.WHITE
     }
 
-    //job?.cancel()
-
-    fun start(mainActivity: MainActivity) {
+   fun start(mainActivity: MainActivity) {
 
         mainActivity.setContentView(R.layout.activity_graphic_library)
         // var fakeData: FakeData = FakeData()
@@ -223,19 +219,23 @@ class GraphicLibrary {
 
     }
 
-    fun startPlotRealSensor(mainActivity: MainActivity) {
+    fun startPlotRealSensor(mainActivity: MainActivity?) {
 
-
-        lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
-        lineDataSetAcc2 = LineDataSet(mySensHandler.YAccArrayListEntry, "acc2")
-        lineDataSetAcc3 = LineDataSet(mySensHandler.ZAccArrayListEntry, "acc3")
+        var lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
+        var lineDataSetAcc2 = LineDataSet(mySensHandler.YAccArrayListEntry, "acc2")
+        var lineDataSetAcc3 = LineDataSet(mySensHandler.ZAccArrayListEntry, "acc3")
 
         val lineAccData = LineData(lineDataSetAcc1)
         lineAccData.addDataSet(lineDataSetAcc2)
         lineAccData.addDataSet(lineDataSetAcc3)
 
-        val lineAccChart = mainActivity.findViewById<LineChart>(R.id.lineAccChart)
-        lineAccChart.data = lineAccData
+        val lineAccChart = mainActivity?.findViewById<LineChart>(R.id.lineAccChart)
+        lineAccChart?.data = lineAccData
+
+        // Imposta i limiti dell'asse delle x
+        val xAxis: XAxis? = lineAccChart?.xAxis
+        /* xAxis?.axisMinimum = 0f  // Limite minimo */
+        xAxis?.axisMaximum = mySensHandler.timestamp  // Limite massimo
 
 
     }

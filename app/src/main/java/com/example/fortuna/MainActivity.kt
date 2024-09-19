@@ -1,10 +1,7 @@
 package com.example.fortuna
 
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
@@ -21,8 +18,8 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
     private lateinit var udpReceiver: UDPListener
     private lateinit var udpSender: UDPSender
 
-
     private var graphicLibraryFlag: Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -37,10 +34,13 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
             val graphicLibrary: GraphicLibrary = GraphicLibrary()
             graphicLibrary.start(this)*/
 
+            /*
             val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
             graphicLibrary.startSensorUpdates(this)
+            */
 
-
+            val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
+            graphicLibrary.startPlotRealSensor(this)
         }
         else
         {
@@ -102,13 +102,6 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
         // L'app non è più visibile
         mediaPlayer?.pause()
     }
-
-    /* non è detto che serva OnDestroy è nella classe SensHandler
-    override fun onDestroy() {
-        super.onDestroy()
-        sensHandler.unregister()
-    }
-     */
 }
 
 
