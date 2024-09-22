@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
             */
 
             val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
-            graphicLibrary.startPlotRealSensor(this)
+            graphicLibrary.startPlotRealSensorAcc(this)
         }
         else
         {

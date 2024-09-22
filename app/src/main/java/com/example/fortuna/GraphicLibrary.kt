@@ -17,6 +17,9 @@ class GraphicLibrary {
     var lineDataSetAcc1: LineDataSet? = null
     var lineDataSetAcc2: LineDataSet? = null
     var lineDataSetAcc3: LineDataSet? = null
+    var lineDataSetGyro1: LineDataSet? = null
+    var lineDataSetGyro2: LineDataSet? = null
+    var lineDataSetGyro3: LineDataSet? = null
 
     constructor (mainActivity: MainActivity){
         initializeSensClass(mainActivity)
@@ -35,6 +38,7 @@ class GraphicLibrary {
     }
 */
     private fun initializeSensClass(mainActivity: MainActivity) {
+
         mainActivity.setContentView(R.layout.activity_graphic_library)
 
         val fakeData = JsonFakeData(mainActivity)
@@ -88,29 +92,11 @@ class GraphicLibrary {
 
         lineGyroChart.setBackgroundColor(Color.BLACK)
 
-        val lineDataSetGyro1 = LineDataSet(fakeData.g1ArrayListEntry, "gyro1")
-        lineDataSetGyro1.color = Color.RED
-        lineDataSetGyro1.valueTextColor = Color.RED
-        lineDataSetGyro1.setDrawValues(false)
-        lineDataSetGyro1.setCircleColor(Color.RED)
-        lineDataSetGyro1.circleRadius = 1f
-        lineDataSetGyro1.valueTextColor = Color.WHITE
+        lineDataSetGyro1 = LineDataSet(mySensHandler.XGyroArrayListEntry, "gyro1")
 
-        val lineDataSetGyro2 = LineDataSet(fakeData.g2ArrayListEntry, "gyro2")
-        lineDataSetGyro2.color = Color.BLUE
-        lineDataSetGyro2.valueTextColor = Color.BLUE
-        lineDataSetGyro2.setDrawValues(false)
-        lineDataSetGyro2.setCircleColor(Color.BLUE)
-        lineDataSetGyro2.circleRadius = 1f
-        lineDataSetGyro2.valueTextColor = Color.WHITE
+        lineDataSetGyro2 = LineDataSet(mySensHandler.YGyroArrayListEntry, "gyro2")
 
-        val lineDataSetGyro3 = LineDataSet(fakeData.g3ArrayListEntry, "gyro3")
-        lineDataSetGyro3.color = Color.GREEN
-        lineDataSetGyro3.valueTextColor = Color.GREEN
-        lineDataSetGyro3.setDrawValues(false)
-        lineDataSetGyro3.setCircleColor(Color.GREEN)
-        lineDataSetGyro3.circleRadius = 1f
-        lineDataSetGyro3.valueTextColor = Color.WHITE
+        lineDataSetGyro3 = LineDataSet(mySensHandler.ZGyroArrayListEntry, "gyro3")
 
         val legendGyro = lineGyroChart.legend
         legendGyro.textColor = Color.WHITE
@@ -219,11 +205,24 @@ class GraphicLibrary {
 
     }
 
-    fun startPlotRealSensor(mainActivity: MainActivity?) {
+    fun lineDataSetColor(lineDataSet: LineDataSet,color: Int)
+    {
+        lineDataSet.color = color
+        lineDataSet.valueTextColor = color
+        lineDataSet.setDrawValues(false)
+        lineDataSet.setCircleColor(color)
+        lineDataSet.circleRadius = 1f
+        lineDataSet.valueTextColor = Color.WHITE
+    }
+
+    fun startPlotRealSensorAcc(mainActivity: MainActivity?) {
 
         var lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
+        lineDataSetColor(lineDataSetAcc1,Color.RED)
         var lineDataSetAcc2 = LineDataSet(mySensHandler.YAccArrayListEntry, "acc2")
+        lineDataSetColor(lineDataSetAcc2,Color.BLUE)
         var lineDataSetAcc3 = LineDataSet(mySensHandler.ZAccArrayListEntry, "acc3")
+        lineDataSetColor(lineDataSetAcc3,Color.GREEN)
 
         val lineAccData = LineData(lineDataSetAcc1)
         lineAccData.addDataSet(lineDataSetAcc2)
@@ -235,7 +234,31 @@ class GraphicLibrary {
         // Imposta i limiti dell'asse delle x
         val xAxis: XAxis? = lineAccChart?.xAxis
         /* xAxis?.axisMinimum = 0f  // Limite minimo */
-        xAxis?.axisMaximum = mySensHandler.timestamp  // Limite massimo
+        xAxis?.axisMaximum = mySensHandler.timestampAcc  // Limite massimo
+
+
+    }
+
+    fun startPlotRealSensorGyro(mainActivity: MainActivity?) {
+
+        var lineDataSetGyro1 = LineDataSet(mySensHandler.XGyroArrayListEntry, "Gyro1")
+        lineDataSetColor(lineDataSetGyro1,Color.RED)
+        var lineDataSetGyro2 = LineDataSet(mySensHandler.YGyroArrayListEntry, "Gyro2")
+        lineDataSetColor(lineDataSetGyro2,Color.BLUE)
+        var lineDataSetGyro3 = LineDataSet(mySensHandler.ZGyroArrayListEntry, "Gyro3")
+        lineDataSetColor(lineDataSetGyro3,Color.GREEN)
+
+        val lineGyroData = LineData(lineDataSetGyro1)
+        lineGyroData.addDataSet(lineDataSetGyro2)
+        lineGyroData.addDataSet(lineDataSetGyro3)
+
+        val lineGyroChart = mainActivity?.findViewById<LineChart>(R.id.lineGyroChart)
+        lineGyroChart?.data = lineGyroData
+
+        // Imposta i limiti dell'asse delle x
+        val xAxis: XAxis? = lineGyroChart?.xAxis
+        /* xAxis?.axisMinimum = 0f  // Limite minimo */
+        xAxis?.axisMaximum = mySensHandler.timestampGyro  // Limite massimo
 
 
     }
