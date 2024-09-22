@@ -1,11 +1,14 @@
 package com.example.fortuna
 
+import android.annotation.SuppressLint
 import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import com.example.fortuna.databinding.ActivityMainBinding
+import android.content.pm.ActivityInfo
+import androidx.appcompat.app.AppCompatActivity
 
 
 class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback {
@@ -20,8 +23,12 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
 
     private var graphicLibraryFlag: Boolean = true
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Blocca l'orientamento in verticale
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -29,16 +36,6 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
 
         if(graphicLibraryFlag)
         {
-            /* start my substitution - pas */
-            /*
-            val graphicLibrary: GraphicLibrary = GraphicLibrary()
-            graphicLibrary.start(this)*/
-
-            /*
-            val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
-            graphicLibrary.startSensorUpdates(this)
-            */
-
             val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
             graphicLibrary.startPlotRealSensorAcc(this)
         }
