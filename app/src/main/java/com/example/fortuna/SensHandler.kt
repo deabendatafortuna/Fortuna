@@ -61,11 +61,12 @@ class SensHandler(context: Context) : SensorEventListener {
                     YAccArrayListEntry.add(Entry(timestampAcc, y))
                     ZAccArrayListEntry.add(Entry(timestampAcc, z))
 
-                    if(bufferCount%500==0) {
+                    if(bufferCount%100==0) {
                         _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                         _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
                     }
                     bufferCount += 1
+
 
                     if (x > 15 || y > 15 || z > 15) {
                         println("Crash Detected!")
@@ -83,7 +84,7 @@ class SensHandler(context: Context) : SensorEventListener {
                     YGyroArrayListEntry.add(Entry(timestampGyro,y))
                     ZGyroArrayListEntry.add(Entry(timestampGyro,z))
 
-                    if(bufferCount%500==0) {
+                    if(bufferCount%100==0) {
                         _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
                         _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                     }

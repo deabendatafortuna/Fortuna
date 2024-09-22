@@ -1,6 +1,7 @@
 package com.example.fortuna
 
 import android.graphics.Color
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.LineData
@@ -236,6 +237,7 @@ class GraphicLibrary {
         /* xAxis?.axisMinimum = 0f  // Limite minimo */
         xAxis?.axisMaximum = mySensHandler.timestampAcc  // Limite massimo
 
+        lineAccChart?.invalidate()
 
     }
 
@@ -260,6 +262,7 @@ class GraphicLibrary {
         /* xAxis?.axisMinimum = 0f  // Limite minimo */
         xAxis?.axisMaximum = mySensHandler.timestampGyro  // Limite massimo
 
+        lineGyroChart?.invalidate()
 
     }
 }
