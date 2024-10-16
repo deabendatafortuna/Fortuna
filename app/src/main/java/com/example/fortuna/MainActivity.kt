@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat
 import com.example.fortuna.databinding.ActivityMainBinding
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 
 class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback {
