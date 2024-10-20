@@ -52,7 +52,7 @@ class GraphicLibrary {
         mySensHandler = SensHandler(mainActivity)
         mySensHandler.initSensHandler(mainActivity,this)
 
-        lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
+        lineDataSetAcc1 = LineDataSet(mySensHandler.xAccArrayListEntry, "acc1")
         lineDataSetAcc1?.color = Color.RED
         lineDataSetAcc1?.valueTextColor = Color.RED
         lineDataSetAcc1?.setDrawValues(false)
@@ -60,7 +60,7 @@ class GraphicLibrary {
         lineDataSetAcc1?.circleRadius = 1f
         lineDataSetAcc1?.valueTextColor = Color.WHITE
 
-        lineDataSetAcc2 = LineDataSet(mySensHandler.YAccArrayListEntry, "acc2")
+        lineDataSetAcc2 = LineDataSet(mySensHandler.yAccArrayListEntry, "acc2")
         lineDataSetAcc2?.color = Color.BLUE
         lineDataSetAcc2?.valueTextColor = Color.BLUE
         lineDataSetAcc2?.setDrawValues(false)
@@ -68,7 +68,7 @@ class GraphicLibrary {
         lineDataSetAcc2?.circleRadius = 1f
         lineDataSetAcc2?.valueTextColor = Color.WHITE
 
-        lineDataSetAcc3 = LineDataSet(mySensHandler.ZAccArrayListEntry, "acc3")
+        lineDataSetAcc3 = LineDataSet(mySensHandler.zAccArrayListEntry, "acc3")
         lineDataSetAcc3?.color = Color.GREEN
         lineDataSetAcc3?.valueTextColor = Color.GREEN
         lineDataSetAcc3?.setDrawValues(false)
@@ -93,11 +93,11 @@ class GraphicLibrary {
 
         lineGyroChart.setBackgroundColor(Color.BLACK)
 
-        lineDataSetGyro1 = LineDataSet(mySensHandler.XGyroArrayListEntry, "gyro1")
+        lineDataSetGyro1 = LineDataSet(mySensHandler.xGyroArrayListEntry, "gyro1")
 
-        lineDataSetGyro2 = LineDataSet(mySensHandler.YGyroArrayListEntry, "gyro2")
+        lineDataSetGyro2 = LineDataSet(mySensHandler.yGyroArrayListEntry, "gyro2")
 
-        lineDataSetGyro3 = LineDataSet(mySensHandler.ZGyroArrayListEntry, "gyro3")
+        lineDataSetGyro3 = LineDataSet(mySensHandler.zGyroArrayListEntry, "gyro3")
 
         val legendGyro = lineGyroChart.legend
         legendGyro.textColor = Color.WHITE
@@ -218,11 +218,11 @@ class GraphicLibrary {
 
     fun startPlotRealSensorAcc(mainActivity: MainActivity?) {
 
-        var lineDataSetAcc1 = LineDataSet(mySensHandler.XAccArrayListEntry, "acc1")
+        var lineDataSetAcc1 = LineDataSet(mySensHandler.xAccArrayListEntry, "acc1")
         lineDataSetColor(lineDataSetAcc1,Color.RED)
-        var lineDataSetAcc2 = LineDataSet(mySensHandler.YAccArrayListEntry, "acc2")
+        var lineDataSetAcc2 = LineDataSet(mySensHandler.yAccArrayListEntry, "acc2")
         lineDataSetColor(lineDataSetAcc2,Color.BLUE)
-        var lineDataSetAcc3 = LineDataSet(mySensHandler.ZAccArrayListEntry, "acc3")
+        var lineDataSetAcc3 = LineDataSet(mySensHandler.zAccArrayListEntry, "acc3")
         lineDataSetColor(lineDataSetAcc3,Color.GREEN)
 
         val lineAccData = LineData(lineDataSetAcc1)
@@ -243,11 +243,11 @@ class GraphicLibrary {
 
     fun startPlotRealSensorGyro(mainActivity: MainActivity?) {
 
-        var lineDataSetGyro1 = LineDataSet(mySensHandler.XGyroArrayListEntry, "Gyro1")
+        var lineDataSetGyro1 = LineDataSet(mySensHandler.xGyroArrayListEntry, "Gyro1")
         lineDataSetColor(lineDataSetGyro1,Color.RED)
-        var lineDataSetGyro2 = LineDataSet(mySensHandler.YGyroArrayListEntry, "Gyro2")
+        var lineDataSetGyro2 = LineDataSet(mySensHandler.yGyroArrayListEntry, "Gyro2")
         lineDataSetColor(lineDataSetGyro2,Color.BLUE)
-        var lineDataSetGyro3 = LineDataSet(mySensHandler.ZGyroArrayListEntry, "Gyro3")
+        var lineDataSetGyro3 = LineDataSet(mySensHandler.zGyroArrayListEntry, "Gyro3")
         lineDataSetColor(lineDataSetGyro3,Color.GREEN)
 
         val lineGyroData = LineData(lineDataSetGyro1)
