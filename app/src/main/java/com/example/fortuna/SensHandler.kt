@@ -30,6 +30,18 @@ class SensHandler(context: Context) : SensorEventListener {
     private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyroscope: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+    private val stepDetector: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+    private val ambTemp: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+    private val gravity: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+    private val headTracker: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_HEAD_TRACKER)
+    private val heartbeat: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_BEAT)
+    private val linearAcc: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+    private val light: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+    private val motionDetect: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_MOTION_DETECT)
+    private val pose6D0F: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_POSE_6DOF)
+    private val pressure: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)
+    private val proximity: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+    private val significantMotion: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
     private var _mainActivity: MainActivity? = null
     private lateinit var _graphicLibrary: GraphicLibrary
     // val STORAGE_PERMISSION_CODE = 100
@@ -61,23 +73,47 @@ class SensHandler(context: Context) : SensorEventListener {
         gyroscope?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
+        stepDetector?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        ambTemp?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        gravity?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        headTracker?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        heartbeat?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        linearAcc?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        light?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        motionDetect?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        pose6D0F?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        pressure?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        proximity?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        significantMotion?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
-            val fileWriter = FileWriter(file,true)
-            try {
-                fileWriter.write(buildString {
-                    append(it.sensor.type.toString())
-                    append("\n")
-                })
-            }catch (e: IOException){
-                fileWriter.write(buildString {
-                    append(e.toString())
-                })
-            }
-            fileWriter.close()
-            when (it.sensor.type) {
+             when (it.sensor.type) {
                 Sensor.TYPE_ACCELEROMETER -> {
                         val x = it.values[0]
                         val y = it.values[1]
@@ -93,7 +129,6 @@ class SensHandler(context: Context) : SensorEventListener {
                             _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                             _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
                         }
-
                         val fileWriter = FileWriter(file,true)
 
                         try {
@@ -101,14 +136,11 @@ class SensHandler(context: Context) : SensorEventListener {
                         }catch (e: IOException){
                             fileWriter.write(buildString {
                                 append(e.toString())
-                                append("\n")
-                                append("Error to write accelerometer")
+                                append(" Error to write accelerometer")
                                 append("\n")
                             })
                         }
-
                         bufferCount += 1
-
                        /* if (x > 15 || y > 15 || z > 15) {
                             //println("Crash Detected!")
                             fileWriter.write("Crash Detected!"+"\n")
@@ -131,6 +163,7 @@ class SensHandler(context: Context) : SensorEventListener {
                             _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                         }
                         val fileWriter = FileWriter(file,true)
+
                         try {
                             fileWriter.write(buildString {
                                 append("Gyro ")
@@ -146,20 +179,18 @@ class SensHandler(context: Context) : SensorEventListener {
                         }catch (e: IOException){
                             fileWriter.write(buildString {
                                 append(e.toString())
-                                append("\n")
-                                append("Error to write Gyroscopic")
+                                append(" Error to write Gyroscopic")
                                 append("\n")
                             })
                         }
                         fileWriter.close()
-
                         bufferCount += 1
                 }
                 Sensor.TYPE_STEP_DETECTOR -> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_STEP_DETECTOR ")
+                            append("STEP_DETECTOR ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -168,8 +199,7 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_STEP_DETECTOR")
+                            append(" Error to write STEP_DETECTOR")
                             append("\n")
                         })
                     }
@@ -179,7 +209,7 @@ class SensHandler(context: Context) : SensorEventListener {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_AMBIENT_TEMPERATURE ")
+                            append("AMBIENT_TEMPERATURE ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -188,8 +218,7 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_AMBIENT_TEMPERATURE")
+                            append(" Error to write AMBIENT_TEMPERATURE")
                             append("\n")
                         })
                     }
@@ -199,7 +228,7 @@ class SensHandler(context: Context) : SensorEventListener {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_GRAVITY ")
+                            append("GRAVITY ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -208,19 +237,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_GRAVITY")
+                            append(" Error to write GRAVITY")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
                 }
                 Sensor.TYPE_HEAD_TRACKER-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_HEAD_TRACKER ")
+                            append("HEAD_TRACKER ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -229,20 +256,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_HEAD_TRACKER")
+                            append(" Error to write HEAD_TRACKER")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_HEART_BEAT-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_HEART_BEAT ")
+                            append("HEART_BEAT ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -251,20 +275,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_HEART_BEAT")
+                            append(" Error to write HEART_BEAT")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_LINEAR_ACCELERATION-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_LINEAR_ACCELERATION ")
+                            append("LINEAR_ACCELERATION ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -273,20 +294,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_LINEAR_ACCELERATION")
+                            append(" Error to write LINEAR_ACCELERATION")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_LIGHT-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_LIGHT ")
+                            append("LIGHT ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -295,20 +313,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_LIGHT")
+                            append(" Error to write LIGHT")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_MOTION_DETECT-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_MOTION_DETECT ")
+                            append("MOTION_DETECT ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -317,20 +332,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_MOTION_DETECT")
+                            append(" Error to write MOTION_DETECT")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_POSE_6DOF-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_POSE_6DOF ")
+                            append("POSE_6DOF ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -339,20 +351,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_POSE_6DOF")
+                            append(" Error to write POSE_6DOF")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_PRESSURE-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_PRESSURE ")
+                            append("PRESSURE ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -361,20 +370,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_PRESSURE")
+                            append(" Error to write PRESSURE")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_PROXIMITY-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_PROXIMITY ")
+                            append("PROXIMITY ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -383,20 +389,17 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_PROXIMITY")
+                            append(" Error to write PROXIMITY")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
                 Sensor.TYPE_SIGNIFICANT_MOTION-> {
                     val fileWriter = FileWriter(file,true)
                     try {
                         fileWriter.write(buildString {
-                            append("TYPE_SIGNIFICANT_MOTION ")
+                            append("SIGNIFICANT_MOTION ")
                             append(it.timestamp.toString())
                             append(";")
                             append(it.values[0])
@@ -405,16 +408,12 @@ class SensHandler(context: Context) : SensorEventListener {
                     }catch (e: IOException){
                         fileWriter.write(buildString {
                             append(e.toString())
-                            append("\n")
-                            append("Error to write TYPE_SIGNIFICANT_MOTION")
+                            append(" Error to write SIGNIFICANT_MOTION")
                             append("\n")
                         })
                     }
                     fileWriter.close()
-
-
                 }
-
             }
         }
 
