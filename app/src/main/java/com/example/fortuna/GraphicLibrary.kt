@@ -1,7 +1,6 @@
 package com.example.fortuna
 
 import android.graphics.Color
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.LineData
