@@ -1,11 +1,17 @@
 package com.example.fortuna
 
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Environment
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.Manifest
 import com.github.mikephil.charting.data.Entry
 import java.text.SimpleDateFormat
 import java.util.*
@@ -16,22 +22,24 @@ import java.io.IOException
 
 /* sens class implementation */
 
-class SensHandler(context: Context) : SensorEventListener {
-    var timestampAcc = 0f
-    var timestampGyro = 0f
+class SensHandler(private val context: Context) : SensorEventListener {
+    var commonTimestamp: Float = 0.0f
     private var bufferCount = 0
+    private var bufferCountGyro = 0
     var xAccArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var yAccArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var zAccArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var xGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var yGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var zGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
-
-    private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    public val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyroscope: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val stepDetector: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+    private var stepDetectorSensor: Sensor? = null
+    private var stepCount: Int = 0
     private val ambTemp: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+    private var temperatureSensor: Sensor? = null
     private val gravity: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
     private val headTracker: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_HEAD_TRACKER)
     private val heartbeat: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_BEAT)
@@ -44,28 +52,51 @@ class SensHandler(context: Context) : SensorEventListener {
     private val significantMotion: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
     private var _mainActivity: MainActivity? = null
     private lateinit var _graphicLibrary: GraphicLibrary
-    // val STORAGE_PERMISSION_CODE = 100
     private lateinit var directory: File
     private lateinit var file: File
+    private lateinit var fileWriter: FileWriter
+
+    /* array desired switch sensors state to write on file
+                              accelerometer 1 OK, gyroscope 2 OK,
+                              stepDetector  3 OK,   ambTemp 4 ,
+                              gravity 5 OK,       headTracker 6 ,
+                              heartbeat 7,        linearAcc 8 OK,
+                              light 9 OK   ,      motionDetect 10,
+                              pose6D0F 11  ,      pressure 12    ,
+                              proximity 13 OK,    significantMotion 14
+                                1  2  3  4  5  6  7  8  9  10 11 12 13 14 */
+    val desiredStates = arrayOf(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
     fun initSensHandler(mainActivity: MainActivity, graphicLibrary: GraphicLibrary) {
         _mainActivity = mainActivity
         _graphicLibrary = graphicLibrary
-        xAccArrayListEntry.add(Entry(timestampAcc,0.0f))
-        yAccArrayListEntry.add(Entry(timestampAcc,0.0f))
-        zAccArrayListEntry.add(Entry(timestampAcc,0.0f))
-        xGyroArrayListEntry.add(Entry(timestampGyro,0.0f))
-        yGyroArrayListEntry.add(Entry(timestampGyro,0.0f))
-        zGyroArrayListEntry.add(Entry(timestampGyro,0.0f))
+        xAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        yAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        zAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        xGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        yGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        zGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+
         //directory = mainActivity.getExternalFilesDir(null)!!
         // Get directory Download public
         directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val now = Date()
         val formatter = SimpleDateFormat(buildString {
-        append("yyyyMMddHHmmss")
-    }, Locale.getDefault())
+            append("yyyyMMddHHmmss")
+        }, Locale.getDefault())
         val formattedDate = formatter.format(now)
-        this.file = File(directory, "log_$formattedDate.txt")
+        this.file = File(directory, "log_$formattedDate.txt")  /* File writer initialization */
+        fileWriter = FileWriter(file, true)
+
+        stepDetectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        checkAndRequestActivityRecognitionPermission()
+
+        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+        if (temperatureSensor != null) {
+            sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        } else {
+           Log.d("SensorActivity", "Ambient Temperature non disponibile")
+        }
 
         accelerometer?.also { sensor: Sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
@@ -76,6 +107,7 @@ class SensHandler(context: Context) : SensorEventListener {
         stepDetector?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
         ambTemp?.also { sensor ->
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         }
@@ -112,322 +144,241 @@ class SensHandler(context: Context) : SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        event?.let {
-             when (it.sensor.type) {
-                Sensor.TYPE_ACCELEROMETER -> {
-                        val x = it.values[0]
-                        val y = it.values[1]
-                        val z = it.values[2]
+        /* commonTimestamp += 0.1f */
+        commonTimestamp += 1.0f
+        //writeToFile("commonTimestamp ; $commonTimestamp ;")
+        event.let {
+             when (event!!.sensor.type) {
+                 Sensor.TYPE_ACCELEROMETER -> { /* ps 1 */
+                    if (desiredStates[0] == 1) {
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
 
-                        timestampAcc += 0.1f
-
-                        xAccArrayListEntry.add(Entry(timestampAcc,x))
-                        yAccArrayListEntry.add(Entry(timestampAcc, y))
-                        zAccArrayListEntry.add(Entry(timestampAcc, z))
+                        xAccArrayListEntry.add(Entry(commonTimestamp,x))
+                        yAccArrayListEntry.add(Entry(commonTimestamp, y))
+                        zAccArrayListEntry.add(Entry(commonTimestamp, z))
 
                         if(bufferCount%100==0) {
                             _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                             _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
                         }
-                        val fileWriter = FileWriter(file,true)
-
                         try {
-                            fileWriter.write(" Acc $timestampAcc;$x;$y;$z\n")
+                            writeToFile("Acc ; $commonTimestamp ; $x ; $y ; $z")
                         }catch (e: IOException){
-                            fileWriter.write(buildString {
-                                append(e.toString())
-                                append(" Error to write accelerometer")
-                                append("\n")
-                            })
+                            writeToFile("${e.toString()} \" Error to write accelerometer\" ")
                         }
                         bufferCount += 1
                        /* if (x > 15 || y > 15 || z > 15) {
                             //println("Crash Detected!")
                             fileWriter.write("Crash Detected!"+"\n")
                         }*/
-                       fileWriter.close()
                     }
-                Sensor.TYPE_GYROSCOPE -> {
-                        val x = it.values[0]
-                        val y = it.values[1]
-                        val z = it.values[2]
+                }
+                Sensor.TYPE_GYROSCOPE -> { /* ps 2 */
+                    if (desiredStates[1] == 1) {
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
 
-                        timestampGyro += 0.1f
+                        xGyroArrayListEntry.add(Entry(commonTimestamp,x))
+                        yGyroArrayListEntry.add(Entry(commonTimestamp,y))
+                        zGyroArrayListEntry.add(Entry(commonTimestamp,z))
 
-                        xGyroArrayListEntry.add(Entry(timestampGyro,x))
-                        yGyroArrayListEntry.add(Entry(timestampGyro,y))
-                        zGyroArrayListEntry.add(Entry(timestampGyro,z))
-
-                        if(bufferCount%100==0) {
+                        if(bufferCountGyro%100==0) {
                             _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
                             _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
                         }
-                        val fileWriter = FileWriter(file,true)
-
                         try {
-                            fileWriter.write(buildString {
-                                append("Gyro ")
-                                append(timestampAcc.toString())
-                                append(";")
-                                append(x)
-                                append(";")
-                                append(y)
-                                append(";")
-                                append(z)
-                                append("\n")
-                            })
+                            writeToFile("Gyro ; $commonTimestamp ; $x ; $y ; $z")
                         }catch (e: IOException){
-                            fileWriter.write(buildString {
-                                append(e.toString())
-                                append(" Error to write Gyroscopic")
-                                append("\n")
-                            })
+                            writeToFile("${e.toString()} \" Error to write Gyroscopic\" ")
                         }
-                        fileWriter.close()
-                        bufferCount += 1
-                }
-                Sensor.TYPE_STEP_DETECTOR -> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("STEP_DETECTOR ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write STEP_DETECTOR")
-                            append("\n")
-                        })
+                        bufferCountGyro += 1
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_AMBIENT_TEMPERATURE -> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("AMBIENT_TEMPERATURE ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write AMBIENT_TEMPERATURE")
-                            append("\n")
-                        })
+                Sensor.TYPE_STEP_DETECTOR -> { /* ps 3 */
+                    if (desiredStates[2] == 1) {
+                        try {
+                            stepCount++
+                            writeToFile("Step detected at timestamp: $commonTimestamp, total steps: $stepCount")
+                            /*Log.d("MainActivity", "Step detected at timestamp: $commonTimestamp, total steps: $stepCount")*/
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write STEP_DETECTOR\" ")
+                        }
                     }
-                    fileWriter.close()
+                }
+                Sensor.TYPE_AMBIENT_TEMPERATURE -> { /* ps 4 */
+                    if (desiredStates[3] == 1) {
+                        val temperature = event.values[0]
+                        try {
+                            writeToFile("AMBIENT_TEMPERATURE at timestamp; $commonTimestamp ; tmp $temperature")
+                            Log.d("SensorActivity", "Ambient Temperature: $temperature, timestamp: $commonTimestamp")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_AMBIENT_TEMPERATURE\" ")
+                        }
+                    }
                 }
                 Sensor.TYPE_GRAVITY-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("GRAVITY ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write GRAVITY")
-                            append("\n")
-                        })
+                    if (desiredStates[4] == 1) { /* ps 5 */
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
+                        try {
+                            writeToFile("GRAVITY ; $commonTimestamp ; ; $x ; $y ; $z")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_GRAVITY\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_HEAD_TRACKER-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("HEAD_TRACKER ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write HEAD_TRACKER")
-                            append("\n")
-                        })
+                Sensor.TYPE_HEAD_TRACKER-> {   /* ps 6 */
+                    if (desiredStates[5] == 1) {
+                        val hx = event.values[0]
+                        val hy = event.values[1]
+                        val hz = event.values[2]
+                        try {
+                            writeToFile("HEAD_TRACKER ; $commonTimestamp ; $hx ; $hy; $hz")
+                         }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_HEAD_TRACKER\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_HEART_BEAT-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("HEART_BEAT ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write HEART_BEAT")
-                            append("\n")
-                        })
+                Sensor.TYPE_HEART_BEAT-> {     /* ps 7 */
+                    if (desiredStates[6] == 1) {
+                        val heartBeat = event.values[0]
+                        try {
+                            writeToFile("HEART_BEAT ; $commonTimestamp ; $heartBeat")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_HEART_BEAT\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_LINEAR_ACCELERATION-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("LINEAR_ACCELERATION ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write LINEAR_ACCELERATION")
-                            append("\n")
-                        })
+                Sensor.TYPE_LINEAR_ACCELERATION-> { /* ps 8 */
+                    if (desiredStates[7] == 1) {
+                        val ax = event.values[0]
+                        val ay = event.values[1]
+                        val az = event.values[2]
+                        try {
+                            writeToFile("LINEAR_ACCELERATION ; $commonTimestamp ; $ax ; $ay ; $az")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_LINEAR_ACCELERATION\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
                 Sensor.TYPE_LIGHT-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("LIGHT ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write LIGHT")
-                            append("\n")
-                        })
+                    if (desiredStates[8] == 1) { /* ps 9 */
+                        val lightLevel = event.values[0]
+                        try {
+                            writeToFile("LIGHT ; $commonTimestamp ; $lightLevel")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_LIGHT\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_MOTION_DETECT-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("MOTION_DETECT ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write MOTION_DETECT")
-                            append("\n")
-                        })
+                Sensor.TYPE_MOTION_DETECT-> { /* ps 10 */
+                    if (desiredStates[9] == 1) {
+                        val motionDetected = event.values[0]
+                        try {
+                            writeToFile("MOTION_DETECT ; $commonTimestamp ; $motionDetected")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_MOTION_DETECT\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_POSE_6DOF-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("POSE_6DOF ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write POSE_6DOF")
-                            append("\n")
-                        })
+                Sensor.TYPE_POSE_6DOF-> { /* ps 11 (6 Degrees of Freedom) è piuttosto avanzato e
+                fornisce informazioni dettagliate sulla posizione e orientamento nello spazio.*/
+                    if (desiredStates[10] == 1) {
+                        val tx = event.values[0]  // Traslazione x
+                        val ty = event.values[1]  // Traslazione y
+                        val tz = event.values[2]  // Traslazione z
+                        val qx = event.values[3]  // Quaternione x
+                        val qy = event.values[4]  // Quaternione y
+                        val qz = event.values[5]  // Quaternione z
+                        val qw = event.values[6]  // Quaternione w
+                        try {
+                            writeToFile("POSE_6DOF ; $commonTimestamp ; $tx ; $ty ; $tz ; $qx ; $qy ; $qz ; $qw")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_POSE_6DOF\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_PRESSURE-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("PRESSURE ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write PRESSURE")
-                            append("\n")
-                        })
+                Sensor.TYPE_PRESSURE-> { /* ps 12 */
+                    if (desiredStates[11] == 1) {
+                        val pressure = event.values[0]
+                        try {
+                            writeToFile("PRESSURE ; $commonTimestamp ; $pressure")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_PRESSURE\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_PROXIMITY-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("PROXIMITY ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write PROXIMITY")
-                            append("\n")
-                        })
+                Sensor.TYPE_PROXIMITY-> { /* ps 13 */
+                    if (desiredStates[12] == 1) {
+                        val proximity = event.values[0]
+                        try {
+                            writeToFile("PROXIMITY ; $commonTimestamp ; $proximity")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_PROXIMITY\" ")
+                        }
                     }
-                    fileWriter.close()
                 }
-                Sensor.TYPE_SIGNIFICANT_MOTION-> {
-                    val fileWriter = FileWriter(file,true)
-                    try {
-                        fileWriter.write(buildString {
-                            append("SIGNIFICANT_MOTION ")
-                            append(it.timestamp.toString())
-                            append(";")
-                            append(it.values[0])
-                            append("\n")
-                        })
-                    }catch (e: IOException){
-                        fileWriter.write(buildString {
-                            append(e.toString())
-                            append(" Error to write SIGNIFICANT_MOTION")
-                            append("\n")
-                        })
+                Sensor.TYPE_SIGNIFICANT_MOTION-> { /* ps 14  è progettato per rilevare movimenti
+                significativi senza drenare la batteria del dispositivo*/
+                    if (desiredStates[13] == 1) {
+                        val signmotionDetected = event.values[0]
+                        try {
+                            writeToFile("SIGNIFICANT_MOTION ; $commonTimestamp ; $signmotionDetected")
+                        }catch (e: IOException){
+                            writeToFile("${e.toString()} \" Error to write TYPE_SIGNIFICANT_MOTION\" ")
+                        }
+
                     }
-                    fileWriter.close()
                 }
             }
         }
 
 
-}
+    }
+    private fun writeToFile(data: String) {
+        fileWriter.apply {
+            write("$data\n")
+            flush()
+        }
+    }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // accuracy change management
     }
 
-    fun unregister() {
-        sensorManager.unregisterListener(this)
+    fun checkAndRequestActivityRecognitionPermission() {
+
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                (context as Activity),
+                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                ACTIVITY_RECOGNITION_REQUEST_CODE
+            )
+        } else {
+            onActivityRecognitionPermissionGranted()
+        }
     }
 
+    companion object {
+        private const val ACTIVITY_RECOGNITION_REQUEST_CODE = 1001
+    }
+
+    private fun onActivityRecognitionPermissionGranted() {
+        sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        Log.d("SensHandler", "Activity Recognition permission granted")
+    }
+
+    fun onPause() {
+        sensorManager.unregisterListener(this)
+        fileWriter.close()
+    }
 
 
 }

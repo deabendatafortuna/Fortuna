@@ -8,8 +8,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import com.example.fortuna.databinding.ActivityMainBinding
 import android.content.pm.ActivityInfo
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+
 
 
 class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback {
@@ -23,6 +22,7 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
     private lateinit var udpSender: UDPSender
 
     private var graphicLibraryFlag: Boolean = true
+    /* private lateinit var sensHandler: SensHandler */
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
         setContentView(binding.root)
         previewView = binding.root.findViewById(R.id.previewView)
 
+        /* sensHandler = SensHandler(this) */
         if(graphicLibraryFlag)
         {
             val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
@@ -88,6 +89,7 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
         super.onPause()
         // L'app sta per essere messa in background
         mediaPlayer?.pause()
+        //sensHandler.onPause()
     }
 
     override fun onResume() {

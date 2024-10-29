@@ -25,19 +25,7 @@ class GraphicLibrary {
     constructor (mainActivity: MainActivity){
         initializeSensClass(mainActivity)
     }
-/*
-    public fun startSensorUpdates(mainActivity: MainActivity) {
-        job = CoroutineScope(Dispatchers.Main).launch {
-            while (isActive) {
-                /* Interrogo ogni mezzo secondo per avere i valori dell'accelerometro */
-                delay(1)
-                /* Da aggiungere qui il codice per aggiornare l'interfaccia utente */
-                startPlotRealSensor(mainActivity)
 
-            }
-        }
-    }
-*/
     private fun initializeSensClass(mainActivity: MainActivity) {
 
         mainActivity.setContentView(R.layout.activity_graphic_library)
@@ -235,7 +223,8 @@ class GraphicLibrary {
         // Imposta i limiti dell'asse delle x
         val xAxis: XAxis? = lineAccChart?.xAxis
         /* xAxis?.axisMinimum = 0f  // Limite minimo */
-        xAxis?.axisMaximum = mySensHandler.timestampAcc  // Limite massimo
+        //xAxis?.axisMaximum = mySensHandler.timestampAcc  // Limite massimo
+        xAxis?.axisMaximum = mySensHandler.commonTimestamp // Limite massimo
 
         lineAccChart?.invalidate()
 
@@ -260,7 +249,8 @@ class GraphicLibrary {
         // Imposta i limiti dell'asse delle x
         val xAxis: XAxis? = lineGyroChart?.xAxis
         /* xAxis?.axisMinimum = 0f  // Limite minimo */
-        xAxis?.axisMaximum = mySensHandler.timestampGyro  // Limite massimo
+        //xAxis?.axisMaximum = mySensHandler.timestampGyro  // Limite massimo
+        xAxis?.axisMaximum = mySensHandler.commonTimestamp  // Limite massimo
 
         lineGyroChart?.invalidate()
 
