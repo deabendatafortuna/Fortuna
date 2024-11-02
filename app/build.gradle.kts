@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.androidx.uitooling.preview)
     implementation(libs.androidx.material)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.activity)
+    implementation(libs.play.services.maps)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -65,5 +67,8 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.mpandroidchart)
+    implementation ("com.google.android.gms:play-services-maps:18.0.2")
+    implementation ("com.google.android.gms:play-services-location:18.0.0")
 }
+
 

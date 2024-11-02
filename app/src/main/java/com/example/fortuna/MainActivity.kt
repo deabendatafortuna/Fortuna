@@ -1,13 +1,14 @@
 package com.example.fortuna
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
+import com.example.fortuna.R.id
 import com.example.fortuna.databinding.ActivityMainBinding
-import android.content.pm.ActivityInfo
 
 
 
@@ -24,26 +25,24 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
     private var graphicLibraryFlag: Boolean = true
     /* private lateinit var sensHandler: SensHandler */
 
-    @SuppressLint("SourceLockedOrientationActivity")
+    @SuppressLint("SourceLockedOrientationActivity", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Blocca l'orientamento in verticale
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        previewView = binding.root.findViewById(R.id.previewView)
 
-        /* sensHandler = SensHandler(this) */
-        if(graphicLibraryFlag)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT /* Vertical orientation blocked */
+
+        previewView = binding.root.findViewById(id.previewView)
+
+        if(graphicLibraryFlag) /* sensHandler = SensHandler(this) */
         {
             val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
             graphicLibrary.startPlotRealSensorAcc(this)
         }
         else
         {
-
             cameraManager = CameraManager(this, previewView.surfaceProvider)
             cameraManager.startCameraOrAskPermissions()
 
@@ -66,7 +65,6 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
 
 
         }
-
 
 
 
