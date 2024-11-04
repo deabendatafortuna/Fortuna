@@ -1,7 +1,9 @@
 package com.example.fortuna
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,20 +12,30 @@ import androidx.core.app.ActivityCompat
 import com.example.fortuna.R.id
 import com.example.fortuna.databinding.ActivityMainBinding
 
+import android.content.Context
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import java.io.IOException
 
 
-class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback {
+class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsResultCallback, LocationListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var previewView: PreviewView
     private lateinit var cameraManager: CameraManager
-    private lateinit var udpConnector:UDPConnector
+    private lateinit var udpConnector: UDPConnector
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var udpReceiver: UDPListener
     private lateinit var udpSender: UDPSender
 
     private var graphicLibraryFlag: Boolean = true
-    /* private lateinit var sensHandler: SensHandler */
+    public var mapFlag: Boolean = true
+    private lateinit var locationManager: LocationManager
+
+    var latitude  = 0.0
+    var longitude = 0.0
+    private lateinit var _mapSensActivity: MapSensActivity
 
     @SuppressLint("SourceLockedOrientationActivity", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,15 +44,46 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT /* Vertical orientation blocked */
+        requestedOrientation =
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT /* Vertical orientation blocked */
 
         previewView = binding.root.findViewById(id.previewView)
 
-        if(graphicLibraryFlag) /* sensHandler = SensHandler(this) */
-        {
-            val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
-            graphicLibrary.startPlotRealSensorAcc(this)
+        if (graphicLibraryFlag) /* sensHandler = SensHandler(this) */ {
+            if (mapFlag) {
+
+                _mapSensActivity = MapSensActivity(this)
+                _mapSensActivity.startPlotRealSensorAcc(this)
+
+                locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ),
+                        1
+                    )
+                    return
+                }
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
+
+            } else {
+
+                val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
+                graphicLibrary.startPlotRealSensorAcc(this)
         }
+    }
         else
         {
             cameraManager = CameraManager(this, previewView.surfaceProvider)
@@ -99,6 +142,18 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
         super.onStop()
         // L'app non è più visibile
         mediaPlayer?.pause()
+    }
+
+    override fun onLocationChanged(location: Location) {
+        // Aggiorna la UI o esegui altre azioni con i dati di location
+        this.latitude= location.latitude
+        this.longitude = location.longitude
+        _mapSensActivity.mySensHandler
+        try {
+            _mapSensActivity.mySensHandler.writeToFile("GPS ; ${_mapSensActivity.mySensHandler.commonTimestamp} ; ${location.latitude} ; ${location.longitude}")
+        }catch (e: IOException){
+            _mapSensActivity.mySensHandler.writeToFile("${e.toString()} \" Error to write Gyroscopic\" ")
+        }
     }
 }
 

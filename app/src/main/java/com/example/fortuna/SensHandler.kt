@@ -1,24 +1,31 @@
 package com.example.fortuna
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Context.*
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Environment
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.Manifest
+import androidx.core.content.ContextCompat.getSystemService
 import com.github.mikephil.charting.data.Entry
-import java.text.SimpleDateFormat
-import java.util.*
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-
+import java.text.SimpleDateFormat
+import java.util.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
 
 /* sens class implementation */
 
@@ -32,7 +39,7 @@ class SensHandler(private val context: Context) : SensorEventListener {
     var xGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var yGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
     var zGyroArrayListEntry: ArrayList<Entry> = ArrayList<Entry>()
-    public val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    public val sensorManager: SensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
     private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyroscope: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val stepDetector: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
@@ -52,10 +59,13 @@ class SensHandler(private val context: Context) : SensorEventListener {
     private val significantMotion: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
     private var _mainActivity: MainActivity? = null
     private lateinit var _graphicLibrary: GraphicLibrary
+    private lateinit var _mapSensActivity: MapSensActivity
     private lateinit var directory: File
     private lateinit var file: File
     private lateinit var fileWriter: FileWriter
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationManager: LocationManager
     /* array desired switch sensors state to write on file
                               accelerometer 1 OK, gyroscope 2 OK,
                               stepDetector  3 OK,   ambTemp 4 ,
@@ -66,6 +76,103 @@ class SensHandler(private val context: Context) : SensorEventListener {
                               proximity 13 OK,    significantMotion 14
                                 1  2  3  4  5  6  7  8  9  10 11 12 13 14 */
     val desiredStates = arrayOf(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+    fun initSensHandler(mainActivity: MainActivity, mapSensActivity: MapSensActivity) {
+        _mainActivity = mainActivity
+        _mapSensActivity= mapSensActivity
+        xAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        yAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        zAccArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        xGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        yGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+        zGyroArrayListEntry.add(Entry(commonTimestamp,0.0f))
+
+        //directory = mainActivity.getExternalFilesDir(null)!!
+        // Get directory Download public
+        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val now = Date()
+        val formatter = SimpleDateFormat(buildString {
+            append("yyyyMMddHHmmss")
+        }, Locale.getDefault())
+        val formattedDate = formatter.format(now)
+        this.file = File(directory, "log_$formattedDate.txt")  /* File writer initialization */
+        fileWriter = FileWriter(file, true)
+
+        stepDetectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        checkAndRequestActivityRecognitionPermission()
+
+        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+        if (temperatureSensor != null) {
+            sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        } else {
+            Log.d("SensorActivity", "Ambient Temperature non disponibile")
+        }
+
+        accelerometer?.also { sensor: Sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        gyroscope?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        stepDetector?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+
+        ambTemp?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        gravity?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        headTracker?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        heartbeat?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        linearAcc?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        light?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        motionDetect?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        pose6D0F?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        pressure?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        proximity?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        significantMotion?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+
+
+        /*
+        fusedLocationClient = _mainActivity?.let {
+            LocationServices.getFusedLocationProviderClient(
+                it
+            )
+        }!!
+        // Ottieni la posizione corrente
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                val currentLatLng = LatLng(it.latitude, it.longitude)
+                try {
+                    writeToFile("GPS ; $commonTimestamp ; ${currentLatLng.latitude} ; ${currentLatLng.longitude}")
+                }catch (e: IOException){
+                    writeToFile("${e.toString()} \" Error to write Gyroscopic\" ")
+                }
+            }
+        }
+        */
+
+    }
 
     fun initSensHandler(mainActivity: MainActivity, graphicLibrary: GraphicLibrary) {
         _mainActivity = mainActivity
@@ -143,6 +250,7 @@ class SensHandler(private val context: Context) : SensorEventListener {
         }
     }
 
+
     override fun onSensorChanged(event: SensorEvent?) {
         /* commonTimestamp += 0.1f */
         commonTimestamp += 1.0f
@@ -160,8 +268,15 @@ class SensHandler(private val context: Context) : SensorEventListener {
                         zAccArrayListEntry.add(Entry(commonTimestamp, z))
 
                         if(bufferCount%100==0) {
-                            _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
-                            _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
+                            if(_mainActivity?.mapFlag == true)
+                            {
+                                _mapSensActivity.startPlotRealSensorAcc(_mainActivity)
+                                _mapSensActivity.startPlotRealSensorGyro(_mainActivity)
+                            }
+                            else {
+                                _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
+                                _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
+                            }
                         }
                         try {
                             writeToFile("Acc ; $commonTimestamp ; $x ; $y ; $z")
@@ -186,8 +301,15 @@ class SensHandler(private val context: Context) : SensorEventListener {
                         zGyroArrayListEntry.add(Entry(commonTimestamp,z))
 
                         if(bufferCountGyro%100==0) {
-                            _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
-                            _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
+                            if(_mainActivity?.mapFlag == true)
+                            {
+                                _mapSensActivity.startPlotRealSensorAcc(_mainActivity)
+                                _mapSensActivity.startPlotRealSensorGyro(_mainActivity)
+                            }
+                            else {
+                                _graphicLibrary.startPlotRealSensorAcc(_mainActivity)
+                                _graphicLibrary.startPlotRealSensorGyro(_mainActivity)
+                            }
                         }
                         try {
                             writeToFile("Gyro ; $commonTimestamp ; $x ; $y ; $z")
@@ -339,7 +461,7 @@ class SensHandler(private val context: Context) : SensorEventListener {
 
 
     }
-    private fun writeToFile(data: String) {
+    fun writeToFile(data: String) {
         fileWriter.apply {
             write("$data\n")
             flush()
