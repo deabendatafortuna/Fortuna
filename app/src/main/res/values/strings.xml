@@ -44,4 +44,16 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="label_phone_number">Numero di telefono</string>
+    <string name="cd_phone_number">Numero di telefono</string>
+    <string name="label_call_on_fall">Allarme caduta</string>
+    <string name="cd_call_on_fall">Allarme caduta</string>
+    <string name="label_difficulty">Tipo di difficoltà</string>
+    <string name="cd_difficulty">Tipo di difficoltà</string>
+    <string name="label_assistive_camera">Camera ausiliaria</string>
+    <string name="cd_assistive_camera">Camera ausiliaria</string>
+    <string name="label_record_all">Registra sensori</string>
+    <string name="cd_record_all">Registra sensori</string>
+    <string name="label_alarm_button">Allarme</string>
+    <string name="cd_alarm_button">Allarme</string>
 </resources>

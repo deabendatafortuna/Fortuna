@@ -48,9 +48,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".GmapActivity" >
-        </activity>
+        <activity android:name=".GmapActivity" />
+        <activity android:name=".HelpActivity" />
     </application>
 
 </manifest>
+
+
+
+
+
+

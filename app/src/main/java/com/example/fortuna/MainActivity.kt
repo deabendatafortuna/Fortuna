@@ -2,6 +2,7 @@ package com.example.fortuna
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
@@ -11,11 +12,14 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import com.example.fortuna.R.id
 import com.example.fortuna.databinding.ActivityMainBinding
+import android.content.Intent
 
 import android.content.Context
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.util.Log
+import android.widget.Toast
 import java.io.IOException
 
 
@@ -29,13 +33,15 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
     private lateinit var udpReceiver: UDPListener
     private lateinit var udpSender: UDPSender
 
-    private var graphicLibraryFlag: Boolean = true
+    private var graphicLibraryFlag: Boolean = false
+    private var helpPeople: Boolean = true
     public var mapFlag: Boolean = true
     private lateinit var locationManager: LocationManager
 
     var latitude  = 0.0
     var longitude = 0.0
     private lateinit var _mapSensActivity: MapSensActivity
+    private lateinit var _helpActivity: HelpActivity
 
     @SuppressLint("SourceLockedOrientationActivity", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,68 +55,77 @@ class MainActivity : ComponentActivity(),  ActivityCompat.OnRequestPermissionsRe
 
         previewView = binding.root.findViewById(id.previewView)
 
-        if (graphicLibraryFlag) /* sensHandler = SensHandler(this) */ {
-            if (mapFlag) {
 
-                _mapSensActivity = MapSensActivity(this)
-                _mapSensActivity.startPlotRealSensorAcc(this)
-
-                locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        ),
-                        1
-                    )
-                    return
-                }
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
-
-            } else {
-
-                val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
-                graphicLibrary.startPlotRealSensorAcc(this)
+        if(helpPeople)
+        {
+            try {
+                val intent = Intent(this, HelpActivity::class.java)
+                startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                Log.e("MainActivity", "Impossibile avviare HelpActivity. È stata dichiarata nell'AndroidManifest.xml?", e)
+                Toast.makeText(this, "Errore: schermata di aiuto non disponibile.", Toast.LENGTH_SHORT).show()
+            }
         }
-    }
         else
         {
-            cameraManager = CameraManager(this, previewView.surfaceProvider)
-            cameraManager.startCameraOrAskPermissions()
+            if (graphicLibraryFlag) /* sensHandler = SensHandler(this) */ {
+                if (mapFlag) {
 
-            udpConnector = UDPConnector { playMp3() }
-            udpConnector.startTryConnect()
+                    _mapSensActivity = MapSensActivity(this)
+                    _mapSensActivity.startPlotRealSensorAcc(this)
 
-            /*udpSender = UDPSender("192.168.1.20", 8001)
-            udpReceiver = UDPListener(8000) { message ->
-                runOnUiThread {
-                    if (message == "playMp3")
-                        playMp3()
-                    if (message == "stopMp3")
-                        mediaPlayer?.stop()
+                    locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-                    udpSender?.sendUdpPacket("Received message: $message")
+                    if (ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            ),
+                            1
+                        )
+                        return
+                    }
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
+
+                } else {
+
+                    val graphicLibrary: GraphicLibrary = GraphicLibrary(this)
+                    graphicLibrary.startPlotRealSensorAcc(this)
                 }
             }
+            else {
+                cameraManager = CameraManager(this, previewView.surfaceProvider)
+                cameraManager.startCameraOrAskPermissions()
 
-            udpReceiver.startListening()*/
+                udpConnector = UDPConnector { playMp3() }
+                udpConnector.startTryConnect()
 
+                /*udpSender = UDPSender("192.168.1.20", 8001)
+                udpReceiver = UDPListener(8000) { message ->
+                    runOnUiThread {
+                        if (message == "playMp3")
+                            playMp3()
+                        if (message == "stopMp3")
+                            mediaPlayer?.stop()
 
+                        udpSender?.sendUdpPacket("Received message: $message")
+                    }
+                }
+
+                udpReceiver.startListening()*/
+
+            }
         }
-
-
-
     }
 
     override fun onRequestPermissionsResult(
