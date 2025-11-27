@@ -1,112 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".HelpActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        app:errorEnabled="true">
 
-        <!-- Numero di telefono -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPhone"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPhone"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/label_phone_number"
-            app:boxStrokeWidth="1dp"
-            app:boxBackgroundMode="outline"
-            app:counterEnabled="false"
-            app:endIconMode="clear_text"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:hint="Numero di telefono per emergenza"
+            android:inputType="phone" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPhone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone"
-                android:maxLines="1"
-                android:imeOptions="actionDone"
-                android:contentDescription="@string/cd_phone_number" />
-        </com.google.android.material.textfield.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Partire chiamata se cade utente
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/swCallOnFall"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/label_call_on_fall"
-            android:contentDescription="@string/cd_call_on_fall"
-            app:layout_constraintTop_toBottomOf="@id/tilPhone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp" />-->
+    <Button
+        android:id="@+id/btnAlarm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Invia Allarme WhatsApp" />
 
-        <!-- Tipo di difficoltà: Spinner (menù a tendina) -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilDifficulty"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/label_difficulty"
-            app:layout_constraintTop_toBottomOf="@id/tilPhone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp">
+    <!-- ▼▼▼ SEZIONE GPS AGGIUNTA ▼▼▼ -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="La tua posizione attuale:"
+        android:textStyle="bold" />
 
-            <AutoCompleteTextView
-                android:id="@+id/spDifficulty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:contentDescription="@string/cd_difficulty"
-                android:importantForAutofill="no"
-                android:ems="10" />
-        </com.google.android.material.textfield.TextInputLayout>
+    <TextView
+        android:id="@+id/tvLatitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        tools:text="Latitudine: 45.4642" />
 
-        <!-- Attivare camera ipovedenza/anziano
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/swAssistiveCamera"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/label_assistive_camera"
-            android:contentDescription="@string/cd_assistive_camera"
-            app:layout_constraintTop_toBottomOf="@id/tilDifficulty"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp" />
+    <TextView
+        android:id="@+id/tvLongitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Longitudine: 9.1900" />
 
-        - Registrare audio/camera/foto/posizione
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/swRecordAll"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/label_record_all"
-            android:contentDescription="@string/cd_record_all"
-            app:layout_constraintTop_toBottomOf="@id/swAssistiveCamera"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp" /> -->
+    <TextView
+        android:id="@+id/tvLocationStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textStyle="italic"
+        tools:text="In attesa del segnale GPS..."/>
 
-        -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAlarm"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/label_alarm_button"
-            android:contentDescription="@string/cd_alarm_button"
-            app:icon="@android:drawable/ic_dialog_alert"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tilDifficulty"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="24dp" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+</LinearLayout>
