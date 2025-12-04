@@ -6,20 +6,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".HelpActivity">
+    tools:context=".HelpActivity"
+    android:background="@android:color/black"> <!-- Esempio: sfondo nero per contrasto -->
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:errorEnabled="true">
+        app:errorEnabled="true"
+        android:textColorHint="#CCCCCC"> <!-- Colore per il suggerimento (hint) -->
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Numero di telefono per emergenza"
-            android:inputType="phone" />
+            android:inputType="phone"
+            android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -30,26 +33,29 @@
         android:layout_marginTop="8dp"
         android:text="Invia Allarme WhatsApp" />
 
-    <!-- ▼▼▼ SEZIONE GPS AGGIUNTA ▼▼▼ -->
+    <!-- ▼▼▼ SEZIONE GPS CON TESTO BIANCO ▼▼▼ -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="La tua posizione attuale:"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     <TextView
         android:id="@+id/tvLatitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        tools:text="Latitudine: 45.4642" />
+        tools:text="Latitudine: 45.4642"
+        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     <TextView
         android:id="@+id/tvLongitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Longitudine: 9.1900" />
+        tools:text="Longitudine: 9.1900"
+        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     <TextView
         android:id="@+id/tvLocationStatus"
@@ -57,7 +63,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textStyle="italic"
-        tools:text="In attesa del segnale GPS..."/>
+        tools:text="In attesa del segnale GPS..."
+        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     <TextView
         android:id="@+id/tvDistance"
@@ -66,7 +73,7 @@
         android:layout_marginTop="16dp"
         android:textSize="16sp"
         android:textStyle="bold"
-        tools:text="Sei a 5.2 Km dal parco &quot;La Favorita&quot;" />
-
+        tools:text="Sei a 5.2 Km dal parco &quot;La Favorita&quot;"
+        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
 </LinearLayout>

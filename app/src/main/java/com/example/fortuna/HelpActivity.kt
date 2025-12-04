@@ -3,18 +3,19 @@ package com.example.fortuna
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location // <-- IMPORTANTE: Aggiungi questo import
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import com.example.fortuna.databinding.ActivityHelpBinding
 import com.google.android.gms.location.*
-import java.text.DecimalFormat // <-- Import per formattare i numeri
+import java.text.DecimalFormat
 
 class HelpActivity : AppCompatActivity() {
 
@@ -22,24 +23,16 @@ class HelpActivity : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
 
-    // ▼▼▼ NUOVA PROPRIETÀ: Definiamo la posizione di destinazione ▼▼▼
+    // Memorizza l'ultima posizione conosciuta
+    private var lastKnownLocation: Location? = null
+
     private val laFavoritaLocation = Location("La Favorita").apply {
-        // Coordinate: 44°53'33.2"N 11°03'42.9"E
-        // Convertite da DMS (gradi, minuti, secondi) a gradi decimali
         latitude = 44.892556
         longitude = 11.061917
     }
 
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                Toast.makeText(this, "Permesso di localizzazione concesso", Toast.LENGTH_SHORT).show()
-                startLocationUpdates()
-            } else {
-                binding.tvLocationStatus.text = "Permesso di localizzazione negato."
-                Toast.makeText(this, "Permesso negato, la funzione GPS non sarà attiva", Toast.LENGTH_LONG).show()
-            }
-        }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* ... */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,25 +41,57 @@ class HelpActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // ▼▼▼ INIZIO DELLA MODIFICA ▼▼▼
         binding.btnAlarm.setOnClickListener {
-            // ... codice per WhatsApp ...
+            val phoneNumber = binding.etPhone.text.toString().trim()
+
+            if (phoneNumber.isNotEmpty()) {
+                // Costruiamo un messaggio di aiuto più dettagliato
+                var message = "Richiesta di aiuto!\n"
+
+                // Aggiungiamo le coordinate al messaggio, se disponibili
+                if (lastKnownLocation != null) {
+                    val lat = lastKnownLocation!!.latitude
+                    val lon = lastKnownLocation!!.longitude
+                    message += "La mia posizione è: http://maps.google.com/maps?q=$lat,$lon"
+                } else {
+                    message += "Posizione GPS non ancora disponibile."
+                }
+
+                sendWhatsAppMessage(phoneNumber, message)
+            } else {
+                Toast.makeText(this, "Per favore, inserisci un numero di telefono", Toast.LENGTH_SHORT).show()
+                binding.tilPhone.error = "Campo obbligatorio"
+            }
         }
+        // ▲▲▲ FINE DELLA MODIFICA ▲▲▲
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { userLocation ->
-                    // Aggiorniamo la UI con le coordinate
+                    // ▼▼▼ SALVIAMO L'ULTIMA POSIZIONE ▼▼▼
+                    lastKnownLocation = userLocation
+
                     binding.tvLatitude.text = "Latitudine: ${userLocation.latitude}"
                     binding.tvLongitude.text = "Longitudine: ${userLocation.longitude}"
                     binding.tvLocationStatus.text = "Posizione aggiornata!"
-
-                    // ▼▼▼ NUOVA LOGICA: Calcolo e visualizzazione della distanza ▼▼▼
                     calculateAndShowDistance(userLocation)
                 }
             }
         }
 
         checkLocationPermission()
+    }
+
+    private fun sendWhatsAppMessage(phoneNumber: String, message: String) {
+        val formattedNumber = "+39" + phoneNumber.replace(Regex("[\\s-]"), "")
+        val uri = Uri.parse("https://api.whatsapp.com/send?phone=$formattedNumber&text=${Uri.encode(message)}")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "WhatsApp non è installato.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // ▼▼▼ NUOVA FUNZIONE per calcolare e mostrare la distanza ▼▼▼
