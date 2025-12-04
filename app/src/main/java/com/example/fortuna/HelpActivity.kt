@@ -1,39 +1,42 @@
 package com.example.fortuna
 
-import android.Manifest // Importa Manifest
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location // <-- IMPORTANTE: Aggiungi questo import
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts // Importa per la gestione permessi
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.semantics.text
-import androidx.core.content.ContextCompat // Importa ContextCompat
-//import androidx.privacysandbox.tools.core.generator.build
+import androidx.core.content.ContextCompat
 import com.example.fortuna.databinding.ActivityHelpBinding
-import com.google.android.gms.location.* // Importa le classi di localizzazione
+import com.google.android.gms.location.*
+import java.text.DecimalFormat // <-- Import per formattare i numeri
 
 class HelpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHelpBinding
-
-    // Client per i servizi di localizzazione di Google
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    // Callback per ricevere gli aggiornamenti della posizione
     private lateinit var locationCallback: LocationCallback
 
-    // Launcher per la richiesta dei permessi
+    // ▼▼▼ NUOVA PROPRIETÀ: Definiamo la posizione di destinazione ▼▼▼
+    private val laFavoritaLocation = Location("La Favorita").apply {
+        // Coordinate: 44°53'33.2"N 11°03'42.9"E
+        // Convertite da DMS (gradi, minuti, secondi) a gradi decimali
+        latitude = 44.892556
+        longitude = 11.061917
+    }
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                // Permesso concesso, avviamo la richiesta di posizione
                 Toast.makeText(this, "Permesso di localizzazione concesso", Toast.LENGTH_SHORT).show()
                 startLocationUpdates()
             } else {
-                // Permesso negato, informiamo l'utente
-                binding.tvLocationStatus.text = "Permesso di localizzazione negato. Impossibile ottenere le coordinate."
+                binding.tvLocationStatus.text = "Permesso di localizzazione negato."
                 Toast.makeText(this, "Permesso negato, la funzione GPS non sarà attiva", Toast.LENGTH_LONG).show()
             }
         }
@@ -43,28 +46,55 @@ class HelpActivity : AppCompatActivity() {
         binding = ActivityHelpBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inizializza il client di localizzazione
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Imposta il listener per il pulsante di allarme (codice esistente)
         binding.btnAlarm.setOnClickListener {
-            // ... il tuo codice per WhatsApp va qui ...
+            // ... codice per WhatsApp ...
         }
 
-        // Definisci cosa fare quando arriva una nuova posizione
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    // Abbiamo una posizione! Aggiorniamo la UI.
-                    binding.tvLatitude.text = "Latitudine: ${location.latitude}"
-                    binding.tvLongitude.text = "Longitudine: ${location.longitude}"
+                locationResult.lastLocation?.let { userLocation ->
+                    // Aggiorniamo la UI con le coordinate
+                    binding.tvLatitude.text = "Latitudine: ${userLocation.latitude}"
+                    binding.tvLongitude.text = "Longitudine: ${userLocation.longitude}"
                     binding.tvLocationStatus.text = "Posizione aggiornata!"
+
+                    // ▼▼▼ NUOVA LOGICA: Calcolo e visualizzazione della distanza ▼▼▼
+                    calculateAndShowDistance(userLocation)
                 }
             }
         }
 
-        // Avvia il processo per ottenere la posizione
         checkLocationPermission()
+    }
+
+    // ▼▼▼ NUOVA FUNZIONE per calcolare e mostrare la distanza ▼▼▼
+    private fun calculateAndShowDistance(currentUserLocation: Location) {
+        // Calcola la distanza in metri tra la posizione dell'utente e "La Favorita"
+        val distanceInMeters = currentUserLocation.distanceTo(laFavoritaLocation)
+
+        // Converti la distanza in chilometri
+        val distanceInKm = distanceInMeters / 1000.0
+
+        // Formatta il numero per avere solo una cifra decimale (es. 5.2)
+        val df = DecimalFormat("#.#")
+        val formattedDistance = df.format(distanceInKm)
+
+        // Aggiorna la TextView con il messaggio completo
+        binding.tvDistance.text = "Sei a $formattedDistance Km dal parco \"La Favorita\""
+    }
+
+    override fun onPause() {
+        super.onPause()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates()
+        }
     }
 
     private fun checkLocationPermission() {
@@ -107,20 +137,4 @@ class HelpActivity : AppCompatActivity() {
         // Avvia la richiesta
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
-
-    override fun onPause() {
-        super.onPause()
-        // È una buona pratica interrompere gli aggiornamenti quando l'activity non è visibile per risparmiare batteria
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Se l'utente torna all'app, riavvia gli aggiornamenti (se i permessi sono concessi)
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates()
-        }
-    }
-
-    // ... Il resto del tuo codice, inclusa la funzione sendWhatsAppMessage ...
 }

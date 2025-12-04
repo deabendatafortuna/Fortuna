@@ -59,4 +59,14 @@
         android:textStyle="italic"
         tools:text="In attesa del segnale GPS..."/>
 
+    <TextView
+        android:id="@+id/tvDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="Sei a 5.2 Km dal parco &quot;La Favorita&quot;" />
+
+
 </LinearLayout>
