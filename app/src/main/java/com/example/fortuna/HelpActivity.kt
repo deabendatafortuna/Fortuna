@@ -41,7 +41,12 @@ class HelpActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // ▼▼▼ INIZIO DELLA MODIFICA ▼▼▼
+        // ▼▼▼ MODIFICA: Disabilita il pulsante all'avvio ▼▼▼
+        // All'inizio non conosciamo la posizione, quindi è più sicuro
+        // partire con il pulsante disabilitato.
+        binding.btnAlarm.isEnabled = false
+        binding.tvLocationStatus.text = "In attesa del segnale GPS..."
+
         binding.btnAlarm.setOnClickListener {
             val phoneNumber = binding.etPhone.text.toString().trim()
 
@@ -64,18 +69,34 @@ class HelpActivity : AppCompatActivity() {
                 binding.tilPhone.error = "Campo obbligatorio"
             }
         }
-        // ▲▲▲ FINE DELLA MODIFICA ▲▲▲
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.lastLocation?.let { userLocation ->
-                    // ▼▼▼ SALVIAMO L'ULTIMA POSIZIONE ▼▼▼
                     lastKnownLocation = userLocation
 
+                    // Aggiorna UI coordinate
                     binding.tvLatitude.text = "Latitudine: ${userLocation.latitude}"
                     binding.tvLongitude.text = "Longitudine: ${userLocation.longitude}"
-                    binding.tvLocationStatus.text = "Posizione aggiornata!"
-                    calculateAndShowDistance(userLocation)
+
+                    // Calcola la distanza
+                    val distanceInMeters = userLocation.distanceTo(laFavoritaLocation)
+                    val distanceInKm = distanceInMeters / 1000.0
+
+                    // Aggiorna UI distanza
+                    val df = DecimalFormat("#.#")
+                    binding.tvDistance.text = "Sei a ${df.format(distanceInKm)} Km dal parco \"La Favorita\""
+
+                    // ▼▼▼ NUOVA LOGICA PER ABILITARE/DISABILITARE IL PULSANTE ▼▼▼
+                    if (distanceInKm <= 2.0) {
+                        // L'utente è nel raggio di 2 Km: abilita il pulsante
+                        binding.btnAlarm.isEnabled = true
+                        binding.tvLocationStatus.text = "Puoi inviare una segnalazione."
+                    } else {
+                        // L'utente è troppo lontano: disabilita il pulsante
+                        binding.btnAlarm.isEnabled = false
+                        binding.tvLocationStatus.text = "Sei troppo lontano per inviare una segnalazione"
+                    }
                 }
             }
         }
@@ -92,22 +113,6 @@ class HelpActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "WhatsApp non è installato.", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    // ▼▼▼ NUOVA FUNZIONE per calcolare e mostrare la distanza ▼▼▼
-    private fun calculateAndShowDistance(currentUserLocation: Location) {
-        // Calcola la distanza in metri tra la posizione dell'utente e "La Favorita"
-        val distanceInMeters = currentUserLocation.distanceTo(laFavoritaLocation)
-
-        // Converti la distanza in chilometri
-        val distanceInKm = distanceInMeters / 1000.0
-
-        // Formatta il numero per avere solo una cifra decimale (es. 5.2)
-        val df = DecimalFormat("#.#")
-        val formattedDistance = df.format(distanceInKm)
-
-        // Aggiorna la TextView con il messaggio completo
-        binding.tvDistance.text = "Sei a $formattedDistance Km dal parco \"La Favorita\""
     }
 
     override fun onPause() {

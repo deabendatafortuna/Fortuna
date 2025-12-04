@@ -25,6 +25,9 @@
             android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     </com.google.android.material.textfield.TextInputLayout>
+    <!-- activity_help.xml -->
+
+
 
     <Button
         android:id="@+id/btnAlarm"
@@ -32,6 +35,20 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Invia Allarme WhatsApp" />
+
+    <!-- ▼▼▼ TESTO SPOSTATO E MODIFICATO ▼▼▼ -->
+    <!-- Questo testo ora mostrerà lo stato del pulsante o del GPS -->
+    <TextView
+        android:id="@+id/tvLocationStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:textStyle="italic"
+        android:textColor="@android:color/white"
+        tools:text="Sei troppo lontano per inviare una segnalazione" />
+
+
 
     <!-- ▼▼▼ SEZIONE GPS CON TESTO BIANCO ▼▼▼ -->
     <TextView
@@ -55,15 +72,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="Longitudine: 9.1900"
-        android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
-
-    <TextView
-        android:id="@+id/tvLocationStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textStyle="italic"
-        tools:text="In attesa del segnale GPS..."
         android:textColor="@android:color/white" /> <!-- TESTO BIANCO -->
 
     <TextView
